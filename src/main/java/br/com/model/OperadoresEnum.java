@@ -3,11 +3,11 @@ package br.com.model;
 import java.util.List;
 
 public enum OperadoresEnum {
-  DUPLOIMPLICA("<>"),
+  DUPLOIMPLICA("="),
   IMPLICA(">"),
-  NEGACAO("!"),
   OU("|"),
-  E("&");
+  E("&"),
+  NEGACAO("!");
 
   private String valor;
 
