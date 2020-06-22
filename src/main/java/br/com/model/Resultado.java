@@ -1,20 +1,17 @@
 package br.com.model;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class Resultado {
   private String expressao;
   private Boolean check;
-  private Boolean fechado;
-  private List<Resultado> resultados;
+  private List<Resultado> bifurcacaoEsquerda;
+  private List<Resultado> bifurcacaoDireita;
 
   public Resultado(String expressao) {
     this.expressao = expressao;
     this.check = false;
-  }
-
-  public Resultado(List<Resultado> resultados) {
-    this.resultados = resultados;
   }
 
   public String getExpressao() {
@@ -33,19 +30,25 @@ public class Resultado {
     this.check = check;
   }
 
-  public List<Resultado> getResultados() {
-    return resultados;
+  public List<Resultado> getBifurcacaoEsquerda() {
+    if (bifurcacaoEsquerda == null) {
+      bifurcacaoEsquerda = new ArrayList<>();
+    }
+    return bifurcacaoEsquerda;
   }
 
-  public void setResultados(List<Resultado> resultados) {
-    this.resultados = resultados;
+  public void setBifurcacaoEsquerda(List<Resultado> bifurcacaoEsquerda) {
+    this.bifurcacaoEsquerda = bifurcacaoEsquerda;
   }
 
-  public Boolean getFechado() {
-    return fechado;
+  public List<Resultado> getBifurcacaoDireita() {
+    if (bifurcacaoDireita == null) {
+      bifurcacaoDireita = new ArrayList<>();
+    }
+    return bifurcacaoDireita;
   }
 
-  public void setFechado(Boolean fechado) {
-    this.fechado = fechado;
+  public void setBifurcacaoDireita(List<Resultado> bifurcacaoDireita) {
+    this.bifurcacaoDireita = bifurcacaoDireita;
   }
 }

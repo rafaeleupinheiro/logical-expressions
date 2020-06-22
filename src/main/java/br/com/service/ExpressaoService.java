@@ -11,12 +11,12 @@ import java.util.List;
 @Service
 public class ExpressaoService {
   List<Resultado> resultados = new ArrayList<>();
-  List<String> variaveis = new ArrayList<>();
 
   public void processaExpressao(ExpressaoLogica expressaoLogica) {
     resultados.add(new Resultado(expressaoLogica.getExpressao()));
     processador(resultados);
-    provaTautologia(resultados);
+    System.out.println();
+//    provaTautologia(resultados);
   }
 
   private void processador(List<Resultado> resultados) {
@@ -34,12 +34,13 @@ public class ExpressaoService {
     if (expressao.length() != 2) {
       List<String> lista = processaString(expressao);
       lista = processaLista(lista);
-      verificaOrdemPrecedencia(lista, expressao);
+      verificaOrdemPrecedencia(lista, resultados);
     }
 
-    if (resultado.equals(resultados.get(resultados.size() - 1))) {
-      if (resultado.getResultados() != null) {
-        processador(resultado.getResultados());
+    if (resultado.equals(getUltimoResultado(resultados))) {
+      if (!resultado.getBifurcacaoEsquerda().isEmpty() && !resultado.getBifurcacaoEsquerda().isEmpty()) {
+        processador(resultado.getBifurcacaoEsquerda());
+        processador(resultado.getBifurcacaoDireita());
       }
     } else {
       processador(resultados);
@@ -101,78 +102,65 @@ public class ExpressaoService {
     return aux;
   }
 
-  private void verificaOrdemPrecedencia(List<String> lista, String expressao) {
+  private void verificaOrdemPrecedencia(List<String> lista, List<Resultado> resultados) {
     if (lista.get(1).equals(OperadoresEnum.DUPLOIMPLICA.getValor())) {
 
     } else if (lista.get(1).equals(OperadoresEnum.IMPLICA.getValor())) {
-      processaImplica(lista, expressao);
+      processaImplica(lista, resultados);
     } else if (lista.get(1).equals(OperadoresEnum.NEGACAO.getValor())) {
 
     } else if (lista.get(1).equals(OperadoresEnum.OU.getValor())) {
 
     } else if (lista.get(1).equals(OperadoresEnum.E.getValor())) {
-      processaE(lista, expressao);
+      processaE(lista, resultados);
     }
   }
 
-  private void processaImplica(List<String> lista, String expressao) {
+  private void processaImplica(List<String> lista, List<Resultado> resultados) {
     if (lista.get(3).equals("V")) {
-      List<Resultado> aux = new ArrayList<>();
-      aux.add(new Resultado(lista.get(0) + "F"));
-      aux.add(new Resultado(lista.get(2) + "V"));
-      adiciona(aux, null);
+      Resultado bifurcacaoEsquerda = new Resultado(lista.get(0) + "F");
+      Resultado bifurcacaoDireita = new Resultado(lista.get(2) + "V");
+      adicionaBifurcacao(getUltimoResultado(resultados), bifurcacaoEsquerda, bifurcacaoDireita);
     } else {
-      adiciona(null, new Resultado(lista.get(0) + "V"));
-      adiciona(null, new Resultado(lista.get(2) + "F"));
+      adicionaProlongamento(resultados, new Resultado(lista.get(0) + "V"));
+      adicionaProlongamento(resultados, new Resultado(lista.get(2) + "F"));
     }
   }
 
-  private void processaE(List<String> lista, String expressao) {
+  private void processaE(List<String> lista, List<Resultado> resultados) {
     if (lista.get(3).equals("V")) {
-      adiciona(null, new Resultado(lista.get(0) + "V"));
-      adiciona(null, new Resultado(lista.get(2) + "V"));
+      adicionaProlongamento(resultados, new Resultado(lista.get(0) + "V"));
+      adicionaProlongamento(resultados, new Resultado(lista.get(2) + "V"));
     } else {
-      List<Resultado> aux = new ArrayList<>();
-      aux.add(new Resultado(lista.get(0) + "F"));
-      aux.add(new Resultado(lista.get(2) + "V"));
-      adiciona(aux, null);
+      Resultado bifurcacaoEsquerda = new Resultado(lista.get(0) + "F");
+      Resultado bifurcacaoDireita = new Resultado(lista.get(2) + "F");
+      adicionaBifurcacao(getUltimoResultado(resultados), bifurcacaoEsquerda, bifurcacaoDireita);
     }
   }
 
-  /*private void setCheck(String expr, List<Resultado> result) {
-    for (Resultado resultado : result) {
-      if (resultado.getExpressao().equals(expr) && !resultado.getCheck()) {
-        resultado.setCheck(true);
-      }
-    }
-  }*/
+  private void adicionaProlongamento(List<Resultado> resultados, Resultado resultado) {
+    resultados.add(resultado);
+  }
 
-//  private void setCheck2(String expr, List<Resultado> result) {
-//    for (Resultado resultado : result) {
-//      if (resultado.getExpressao() == null && resultado.getResultados() != null) {
-//        setCheck(expr, resultado.getResultados());
-//      } else if (resultado.getExpressao().equals(expr) && !resultado.getCheck()) {
-//        resultado.setCheck(true);
-//      }
-//    }
-//  }
-
-  private void adiciona(List<Resultado> lista, Resultado resultado) {
-    if (lista == null) {
-      resultados.add(resultado);
+  private void adicionaBifurcacao(Resultado ultimoResultado, Resultado bifurcacaoEsquerda, Resultado bifurcacaoDireita) {
+    if (ultimoResultado.getBifurcacaoEsquerda().isEmpty() && ultimoResultado.getBifurcacaoEsquerda().isEmpty()) {
+      ultimoResultado.getBifurcacaoEsquerda().add(bifurcacaoEsquerda);
+      ultimoResultado.getBifurcacaoDireita().add(bifurcacaoDireita);
     } else {
-      resultado = resultados.get(resultados.size() - 1);
-      if (resultado != null && resultado.getResultados() == null) {
-        resultado.setResultados(lista);
-      } else {
-        for (Resultado aux : resultado.getResultados()) {
-          aux.setResultados(lista);
-        }
-      }
+      bifurcacaoEsquerda = new Resultado(bifurcacaoEsquerda.getExpressao());
+      bifurcacaoDireita = new Resultado(bifurcacaoDireita.getExpressao());
+      adicionaBifurcacao(getUltimoResultado(ultimoResultado.getBifurcacaoEsquerda()), bifurcacaoEsquerda, bifurcacaoDireita);
+      bifurcacaoEsquerda = new Resultado(bifurcacaoEsquerda.getExpressao());
+      bifurcacaoDireita = new Resultado(bifurcacaoDireita.getExpressao());
+      adicionaBifurcacao(getUltimoResultado(ultimoResultado.getBifurcacaoDireita()), bifurcacaoEsquerda, bifurcacaoDireita);
     }
   }
 
-  private void provaTautologia(List<Resultado> resultados) {
+  private Resultado getUltimoResultado(List<Resultado> aux) {
+    return aux.get(aux.size() - 1);
+  }
+
+  /*private void provaTautologia(List<Resultado> resultados) {
     for (Resultado resultado : resultados) {
       String expressao = resultado.getExpressao();
       if (expressao.length() == 2) {
@@ -200,5 +188,5 @@ public class ExpressaoService {
         }
       }
     }
-  }
+  }*/
 }
