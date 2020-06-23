@@ -1,21 +1,22 @@
-package br.com.service;
+package br.com.expressaologicatautologia.processador;
 
-import br.com.model.ExpressaoLogica;
-import br.com.model.OperadoresEnum;
-import br.com.model.Resultado;
-import org.springframework.stereotype.Service;
+import br.com.expressaologicatautologia.model.Node;
+import br.com.expressaologicatautologia.model.ExpressaoLogica;
+import br.com.expressaologicatautologia.model.OperadoresEnum;
+import br.com.expressaologicatautologia.model.Resultado;
 
 import java.util.ArrayList;
 import java.util.List;
 
-@Service
-public class ExpressaoService {
+public class ExpressaoProcessador {
   List<Resultado> resultados;
   List<Object> variaveis;
+  Node node;
 
   public void processaExpressao(ExpressaoLogica expressaoLogica) {
     variaveis = new ArrayList<>();
     this.resultados = new ArrayList<>();
+    this.node = new Node();
     resultados.add(new Resultado(expressaoLogica.getExpressao()));
     processador(resultados);
     provaTautologia(resultados, variaveis);
@@ -202,7 +203,34 @@ public class ExpressaoService {
 
   private void provaTautologia(List<Resultado> resultados, List<Object> variaveisAux) {
     processaTautologia(resultados, variaveisAux);
+    test(resultados, node);
+    System.out.println();
 //    processaVariaveis(variaveisAux);
+  }
+
+
+  private void test(List<Resultado> resultados, Node node) {
+    Node filho = null;
+    for (Resultado resultado : resultados) {
+      String expressao = resultado.getExpressao();
+      if (expressao.length() == 2) {
+        filho = new Node(expressao);
+        if (node.getValor() != null) {
+          node.getFilhos().add(filho);
+        } else {
+          node.setValor(expressao);
+        }
+      }
+      if (resultado.equals(getUltimoResultado(resultados))) {
+        if (!resultado.getBifurcacaoEsquerda().isEmpty() && !resultado.getBifurcacaoEsquerda().isEmpty()) {
+          test(resultado.getBifurcacaoEsquerda(), filho);
+          test(resultado.getBifurcacaoDireita(), filho);
+          System.out.println();
+        } else {
+        }
+      } else {
+      }
+    }
   }
 
   private void processaTautologia(List<Resultado> resultados, List<Object> variaveisAux) {
@@ -215,10 +243,10 @@ public class ExpressaoService {
         if (!resultado.getBifurcacaoEsquerda().isEmpty() && !resultado.getBifurcacaoEsquerda().isEmpty()) {
           List<Object> aux = new ArrayList<>();
           variaveisAux.add(aux);
-          provaTautologia(resultado.getBifurcacaoEsquerda(), aux);
+          processaTautologia(resultado.getBifurcacaoEsquerda(), aux);
           List<Object> aux2 = new ArrayList<>();
           variaveisAux.add(aux2);
-          provaTautologia(resultado.getBifurcacaoDireita(), aux2);
+          processaTautologia(resultado.getBifurcacaoDireita(), aux2);
         } else {
         }
       } else {

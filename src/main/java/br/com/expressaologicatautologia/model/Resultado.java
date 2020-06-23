@@ -1,4 +1,4 @@
-package br.com.model;
+package br.com.expressaologicatautologia.model;
 
 import java.util.ArrayList;
 import java.util.List;
