@@ -1,7 +1,7 @@
 # logical-expressions
 Logical Expressions
 
-##Executar a classe principal App.java
+##Executar a classe principal App.java e o resultado sairá no console
 
 * Duplo Implica      =
 * Implica            >
