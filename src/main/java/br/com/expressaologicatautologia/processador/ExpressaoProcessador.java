@@ -1,6 +1,5 @@
 package br.com.expressaologicatautologia.processador;
 
-import br.com.expressaologicatautologia.model.Node;
 import br.com.expressaologicatautologia.model.ExpressaoLogica;
 import br.com.expressaologicatautologia.model.OperadoresEnum;
 import br.com.expressaologicatautologia.model.Resultado;
@@ -10,16 +9,21 @@ import java.util.List;
 
 public class ExpressaoProcessador {
   List<Resultado> resultados;
-  List<Object> variaveis;
-  Node node;
+  List<String> variaveis;
+  Boolean naoEhTautologia;
 
   public void processaExpressao(ExpressaoLogica expressaoLogica) {
-    variaveis = new ArrayList<>();
+    this.naoEhTautologia = true;
+    this.variaveis = new ArrayList<>();
     this.resultados = new ArrayList<>();
-    this.node = new Node();
-    resultados.add(new Resultado(expressaoLogica.getExpressao()));
-    processador(resultados);
-    provaTautologia(resultados, variaveis);
+    this.resultados.add(new Resultado(expressaoLogica.getExpressao()));
+    processador(this.resultados);
+    provaTautologia(this.resultados);
+    if (this.naoEhTautologia) {
+      System.out.println(expressaoLogica.getExpressao() + " - Não é uma tautologia!!!");
+    } else {
+      System.out.println(expressaoLogica.getExpressao() + " - É uma tautologia!!!");
+    }
   }
 
   private void processador(List<Resultado> resultados) {
@@ -39,8 +43,6 @@ public class ExpressaoProcessador {
       List<String> lista = processaString(expressao);
       lista = processaLista(lista);
       verificaOrdemPrecedencia(lista, resultados);
-    } else {
-
     }
 
     if (resultado.equals(getUltimoResultado(resultados))) {
@@ -128,12 +130,16 @@ public class ExpressaoProcessador {
   private void processaDuploImplica(List<String> lista, List<Resultado> resultados) {
     if (lista.get(3).equals("V")) {
       Resultado bifurcacaoEsquerda = new Resultado(lista.get(0) + "V");
-      Resultado bifurcacaoDireita = new Resultado(lista.get(2) + "F");
+      Resultado bifurcacaoDireita = new Resultado(lista.get(0) + "F");
       adicionaBifurcacao(getUltimoResultado(resultados), bifurcacaoEsquerda, bifurcacaoDireita);
+      adicionaProlongamento(getUltimoResultado(resultados).getBifurcacaoEsquerda(), new Resultado(lista.get(2) + "V"));
+      adicionaProlongamento(getUltimoResultado(resultados).getBifurcacaoDireita(), new Resultado(lista.get(2) + "F"));
     } else {
-      Resultado bifurcacaoEsquerda = new Resultado(lista.get(0) + "F");
-      Resultado bifurcacaoDireita = new Resultado(lista.get(2) + "V");
+      Resultado bifurcacaoEsquerda = new Resultado(lista.get(0) + "V");
+      Resultado bifurcacaoDireita = new Resultado(lista.get(0) + "F");
       adicionaBifurcacao(getUltimoResultado(resultados), bifurcacaoEsquerda, bifurcacaoDireita);
+      adicionaProlongamento(getUltimoResultado(resultados).getBifurcacaoEsquerda(), new Resultado(lista.get(2) + "F"));
+      adicionaProlongamento(getUltimoResultado(resultados).getBifurcacaoDireita(), new Resultado(lista.get(2) + "V"));
     }
   }
 
@@ -201,76 +207,38 @@ public class ExpressaoProcessador {
     return aux.get(aux.size() - 1);
   }
 
-  private void provaTautologia(List<Resultado> resultados, List<Object> variaveisAux) {
-    processaTautologia(resultados, variaveisAux);
-    test(resultados, node);
-    System.out.println();
-//    processaVariaveis(variaveisAux);
-  }
-
-
-  private void test(List<Resultado> resultados, Node node) {
-    Node filho = null;
+  private void provaTautologia(List<Resultado> resultados) {
     for (Resultado resultado : resultados) {
+      this.naoEhTautologia = true;
       String expressao = resultado.getExpressao();
       if (expressao.length() == 2) {
-        filho = new Node(expressao);
-        if (node.getValor() != null) {
-          node.getFilhos().add(filho);
+        String variavel = expressao.charAt(0) + "";
+        char valor = expressao.charAt(1);
+        if (valor == 'V') {
+          valor = 'F';
         } else {
-          node.setValor(expressao);
+          valor = 'V';
+        }
+        variavel = variavel + valor;
+        if (!variaveis.contains(variavel)) {
+          variaveis.add(expressao);
+        } else {
+          this.naoEhTautologia = false;
+          break;
         }
       }
       if (resultado.equals(getUltimoResultado(resultados))) {
         if (!resultado.getBifurcacaoEsquerda().isEmpty() && !resultado.getBifurcacaoEsquerda().isEmpty()) {
-          test(resultado.getBifurcacaoEsquerda(), filho);
-          test(resultado.getBifurcacaoDireita(), filho);
-          System.out.println();
-        } else {
+          provaTautologia(resultado.getBifurcacaoEsquerda());
+          if (this.naoEhTautologia) {
+            return;
+          }
+          provaTautologia(resultado.getBifurcacaoDireita());
+          if (this.naoEhTautologia) {
+            return;
+          }
         }
-      } else {
       }
     }
   }
-
-  private void processaTautologia(List<Resultado> resultados, List<Object> variaveisAux) {
-    for (Resultado resultado : resultados) {
-      String expressao = resultado.getExpressao();
-      if (expressao.length() == 2) {
-        variaveisAux.add(expressao);
-      }
-      if (resultado.equals(getUltimoResultado(resultados))) {
-        if (!resultado.getBifurcacaoEsquerda().isEmpty() && !resultado.getBifurcacaoEsquerda().isEmpty()) {
-          List<Object> aux = new ArrayList<>();
-          variaveisAux.add(aux);
-          processaTautologia(resultado.getBifurcacaoEsquerda(), aux);
-          List<Object> aux2 = new ArrayList<>();
-          variaveisAux.add(aux2);
-          processaTautologia(resultado.getBifurcacaoDireita(), aux2);
-        } else {
-        }
-      } else {
-      }
-    }
-  }
-
-  /*private void processaVariaveis(List<Object> variaveisAux) {
-    fo
-  }*/
-
-  /*private void provaTautologia2(List<Resultado> resultados) {
-    for (Resultado resultado : resultados) {
-      String expressao = resultado.getExpressao();
-      if (expressao.length() == 2) {
-        variaveis.add(expressao);
-      }
-      if (resultado.equals(resultados.get(resultados.size() - 1))) {
-        if (resultado.getResultados() != null) {
-          provaTautologia(resultado.getResultados());
-        } else {
-          System.out.println();
-        }
-      }
-    }
-  }*/
 }
