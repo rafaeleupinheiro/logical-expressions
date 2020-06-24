@@ -1,7 +1,7 @@
 # logical-expressions
 Logical Expressions
 
-##Executar a classe principal App.java e o resultado sairá no console
+## Executar a classe principal App.java e o resultado sairá no console
 
 * Duplo Implica      =
 * Implica            >
@@ -12,7 +12,7 @@ Logical Expressions
 * Verdadeiro         V
 
 
-##Exemplos:
+## Exemplos:
 * (p>q)&(q>r)>(p>r)F     -   Tautologia
 * p|!pF                  -   Tautologia
 * (p&q)>(p=q)F           -   Tautologia
